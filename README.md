@@ -1,7 +1,19 @@
-# Tauri + React + Typescript
+# TodoMVC spec with tauri&react&vite
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+## build
+1. download dependencies
 
-## Recommended IDE Setup
+```shell
+npm install
+```
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+2. 
+- run in dev mode
+```shell
+npm run tauri dev
+```
+
+- run in browser without backend
+```shell
+npm run dev
+```

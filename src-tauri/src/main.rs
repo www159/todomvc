@@ -14,10 +14,15 @@ fn main() {
     let app = applications::todo::TodoApp::new().unwrap();
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
+            //SECTION - test invoke
             controllers::test::greet,
+            //~SECTION
+
+            //SECTION - todo items
             controllers::todo::get_todos,
             controllers::todo::new_todo,
             controllers::todo::update_todo,
+            //~SECTION
         ])
         .manage(controllers::todo::AppState {
             app: Mutex::from(app),

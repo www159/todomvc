@@ -27,3 +27,8 @@ export const anyTodosDone = atom(get => {
     const todos = get(todosAtom);
     return todos.some(todo => todo.done);
 })
+
+export const everyTodosDone = atom(get => {
+    const todos = get(todosAtom);
+    return todos.every(todo => todo.done);
+})

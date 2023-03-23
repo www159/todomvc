@@ -2,31 +2,30 @@ import TodoItem from "./TodoItem";
 import { Todo } from "../types/todo";
 import { v4 as randomUUID } from "uuid"
 import { useCallback, KeyboardEventHandler, useState } from "react";
-import { todosAtom, anyTodosDone, filterType, numLeftAtom } from "../store/todo";
-import { invoke } from "@tauri-apps/api";
+import { todosAtom, anyTodosDone, filterType, numLeftAtom, everyTodosDone } from "../store/todo";
 import { useAtom } from "jotai";
+import { newTodo, updateTodo } from "../services/cmds";
 
 const TodoList: React.FC<{ todos: Todo[] }> = ({ todos }) => {
-    // ANCHOR store
+    // SECTION store
     const [, setTodos] = useAtom(todosAtom);
-    const [type, setType] = useAtom(filterType);
+    const [, setType] = useAtom(filterType);
     const [anyDone,] = useAtom(anyTodosDone);
-    const [numLeft,] = useAtom(numLeftAtom);
-    // ANCHOR_END store
+    const [everyDone, ] = useAtom(everyTodosDone);
+    const [numLeft, ] = useAtom(numLeftAtom);
+    // ~SECTION store
 
-    // ANCHOR component state
+    // SECTION component state
     const [newTodoLabel, setNewTodoLabel] = useState('');
-    // ANCHOR_END component state
+    // ~SECTION component state
 
-    // ANCHOR hook function
+    // SECTION hook function
     const addTodo = async (label: string, id: string) => {
-        invoke('new_todo', {
-            todo: {
-                id, label,
-                done: false,
-                is_delete: false,
-            } as Todo
-        })
+        newTodo({
+            id, label,
+            done: false,
+            is_delete: false,
+        });
     }
 
     const onAddTodo = useCallback<KeyboardEventHandler<HTMLInputElement>>(
@@ -56,8 +55,9 @@ const TodoList: React.FC<{ todos: Todo[] }> = ({ todos }) => {
             return oldtodos.filter(todo => {
                 const isDone = todo.done;
                 if(isDone) {
-                    invoke("update_todo", {
-                        todo: {...todo, is_delete: true}
+                    updateTodo({
+                        ...todo,
+                        is_delete: true,
                     });
                     return false;
                 }
@@ -65,7 +65,27 @@ const TodoList: React.FC<{ todos: Todo[] }> = ({ todos }) => {
             })
         })
     }
-    // ANCHOR_END hook function
+
+    const toggleAllTodo = () => {
+        // NOTE
+        // don't update whole todo items.
+        setTodos(oldTodos => {
+            const newTodos = oldTodos.map(oldTodo => {
+                const newTodo = {
+                    ...oldTodo,
+                    done: everyDone ? false : true,
+                };
+                
+                if(oldTodo.done !== newTodo.done) {
+                    updateTodo(newTodo);
+                }
+                return newTodo;
+            });
+
+            return newTodos;
+        });
+    }
+    // ~SECTION hook function
 
     return (
         <>
@@ -82,8 +102,14 @@ const TodoList: React.FC<{ todos: Todo[] }> = ({ todos }) => {
                 />
             </header>
             <section className="main">
-                <input type="checkbox" className="toggle-all"/>
-                <label htmlFor="toggle-all"></label>
+                <input 
+                    type="checkbox" 
+                    id="toggle-all"
+                    className="toggle-all"
+                    checked={everyDone}
+                    onChange={() => toggleAllTodo()}
+                    />
+                <label htmlFor="toggle-all">toggle all todos' done</label>
                 <ul className="todo-list">
                     {todos.map(todo => (
                         <TodoItem key={todo.id} todo={todo} />

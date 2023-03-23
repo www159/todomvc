@@ -1,37 +1,36 @@
 import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
-import { Todo } from "./types/todo";
 import { useAtom } from "jotai";
 import { todosAtom, filterAtom } from "./store/todo";
 
 import TodoList from "./components/TodoList";
+import { getTodos } from "./services/cmds";
 
 function App() {
   
-  // ANCHOR store
+  // SECTION store
   const [,setTodos] = useAtom(todosAtom);
   const [filtedTodos] = useAtom(filterAtom);
-  // ANCHOR_END store
+  // ~SECTION store
 
-  // ANCHOR component state
+  // SECTION component state
   const [name, setName] = useState("");
   const [greetMsg, setGreetMsg] = useState("");
   // ANCHOR_END component state
 
-  // ANCHOR hook function
+  // ~SECTION hook function
     // async function greet() {
     //   // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     //   setGreetMsg(await invoke("greet", { name }));
     // }
   // ANCHOR_END hook function
 
-  // ANCHOR side effect
+  // SECTION side effect
   useEffect(() => {
-    invoke<Todo[]>("get_todos").then(res => {
+    getTodos().then(res => {
       setTodos(res);
     })
   }, []);
-  // ANCHOR_END side effect
+  // ~SECTION side effect
 
   return (
     <div className="todoapp">

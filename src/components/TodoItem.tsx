@@ -3,26 +3,26 @@ import { Todo } from "../types/todo";
 import { useAtom } from "jotai";
 import { anyTodosDone, todosAtom } from "../store/todo";
 import { ChangeEventHandler, KeyboardEventHandler, MouseEventHandler, useCallback, useEffect, useRef, useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
+import { updateTodo } from "../services/cmds";
 
 const TodoItem: React.FC<{ todo: Todo }> = ({ todo }) => {
 
-    // ANCHOR store
+    // SECTION store
     const [anyDone] = useAtom(anyTodosDone);
     const [, setTodos] = useAtom(todosAtom);
-    // ANCHOR_END store
+    // ~SECTION store
 
-    // ANCHOR component state
+    // SECTION component state
     const [completed, setCompleted] = useState(todo.done);
     const [editing, setEditing] = useState(false);
     const [text, setText] = useState(todo.label);
-    // ANCHOR_END component state
+    // ~SECTION component state
 
-    // ANCHOR dom reference
+    // SECTION dom reference
     const inputRef = useRef<HTMLInputElement>(null);
-    // ANCHOR_END dom reference
+    // ~SECTION dom reference
 
-    // ANCHOR hook function
+    // SECTION hook function
     // begin to edit label.
     const onEditLabel:MouseEventHandler<HTMLLabelElement> = (e) => {
         e.preventDefault();
@@ -33,7 +33,7 @@ const TodoItem: React.FC<{ todo: Todo }> = ({ todo }) => {
     const onQuitEditLabel = () => {
         setEditing(() => false);
         todo.label = text;
-        invoke("update_todo", { todo });
+        updateTodo(todo);
     }
 
     // edit cancelled, quit edit mode.
@@ -57,16 +57,23 @@ const TodoItem: React.FC<{ todo: Todo }> = ({ todo }) => {
             cancelEditLabel();
         }
     }
-    // ANCHOR_END hook function
+    // ~SECTION hook function
 
-    // ANCHOR side effect
-    // trying to focus input when rendering.
+    // SECTION side effect
     useEffect(() => {
+        // trying to focus input when rendering.
         if(editing) inputRef.current?.focus();
-    })
-    // ANCHOR_END side effect
+
+        // sync update with todo.done
+        setCompleted(todo.done);
+    });
+    // ~SECTION side effect
 
 
+    // SECTION debug
+    // console.log("todo has done?", todo.done);
+    // console.log("completed is: ", completed);
+    // ~SECTION
     return (
         <li 
             className={`${editing ? "editing" : ""} ${completed ? "completed" : ""}`}
@@ -79,7 +86,7 @@ const TodoItem: React.FC<{ todo: Todo }> = ({ todo }) => {
                     onChange={() => {
                         console.log(anyDone, "any done");
                         todo.done = !todo.done;
-                        invoke("update_todo", { todo });
+                        updateTodo(todo);
                         setCompleted(() => todo.done);
                         setTodos(oldTodos => [...oldTodos]);
                     }}
@@ -87,11 +94,9 @@ const TodoItem: React.FC<{ todo: Todo }> = ({ todo }) => {
                 <label onDoubleClick={onEditLabel}>{text}</label>
                 <button className="destroy" onClick={e => {
                     e.preventDefault();
-                    invoke("update_todo", {
-                        todo: {
-                            ...todo,
-                            is_delete: true,
-                        } as Todo
+                    updateTodo({
+                      ...todo,
+                      is_delete: true,
                     })
                     setTodos(oldTodos => oldTodos.filter(oldTodo => oldTodo.id !== todo.id));
                 }}/>
