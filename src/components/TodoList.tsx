@@ -7,13 +7,18 @@ import { invoke } from "@tauri-apps/api";
 import { useAtom } from "jotai";
 
 const TodoList: React.FC<{ todos: Todo[] }> = ({ todos }) => {
+    // ANCHOR store
     const [, setTodos] = useAtom(todosAtom);
     const [type, setType] = useAtom(filterType);
     const [anyDone,] = useAtom(anyTodosDone);
     const [numLeft,] = useAtom(numLeftAtom);
-    
+    // ANCHOR_END store
+
+    // ANCHOR component state
     const [newTodoLabel, setNewTodoLabel] = useState('');
-    
+    // ANCHOR_END component state
+
+    // ANCHOR hook function
     const addTodo = async (label: string, id: string) => {
         invoke('new_todo', {
             todo: {
@@ -60,6 +65,8 @@ const TodoList: React.FC<{ todos: Todo[] }> = ({ todos }) => {
             })
         })
     }
+    // ANCHOR_END hook function
+
     return (
         <>
             <header className="header">

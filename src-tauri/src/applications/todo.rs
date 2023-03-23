@@ -1,13 +1,6 @@
 use rusqlite::{Connection, Result, params};
-use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Todo {
-    pub id: String,
-    pub label: String,
-    pub done: bool,
-    pub is_delete: bool,
-}
+use crate::controllers::todo::{Todo};
 
 pub struct TodoApp {
     pub conn: Connection,
@@ -29,7 +22,7 @@ impl TodoApp {
         Ok(TodoApp { conn })
     }
 
-    pub fn get_todos(&self) -> Result<Vec<Todo>> {
+    pub fn get_all(&self) -> Result<Vec<Todo>> {
         let mut stmt = self.conn.prepare("SELECT * FROM Todo WHERE is_delete != 1").unwrap();
         let todos_iter = stmt.query_map([], |row| {
             let done = row.get::<usize, i32>(2).unwrap() == 1;
@@ -52,7 +45,7 @@ impl TodoApp {
         Ok(todos)
     }
 
-    pub fn new_todo(&self, todo: Todo) -> bool {
+    pub fn insert(&self, todo: Todo) -> bool {
         let Todo { id, label, .. } = todo;
         match self
             .conn
@@ -70,7 +63,7 @@ impl TodoApp {
         }
     }
 
-    pub fn update_todo(&self, todo: Todo) -> bool {
+    pub fn update(&self, todo: Todo) -> bool {
         let Todo { id, label, done, is_delete } = todo;
         match self
             .conn
